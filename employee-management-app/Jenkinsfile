@@ -1,0 +1,28 @@
+Jenkinsfilepipeline {
+    agent any
+
+    stages {
+
+        stage('Install Dependencies') {
+            steps {
+                bat 'npm install'
+            }
+        }
+
+        stage('Build Angular App') {
+            steps {
+                bat 'npm run build'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build completed successfully'
+        }
+
+        failure {
+            echo 'Build failed'
+        }
+    }
+}
