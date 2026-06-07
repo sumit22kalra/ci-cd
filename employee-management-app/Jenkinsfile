@@ -11,6 +11,22 @@ pipeline {
             }
         }
 
+        stage('Lint') {
+            steps {
+                dir('employee-management-app') {
+                    bat 'npm run lint'
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                dir('employee-management-app') {
+                    bat 'npm test -- --watch=false'
+                }
+            }
+        }
+
         stage('Build Angular App') {
             steps {
                 dir('employee-management-app') {
@@ -18,30 +34,16 @@ pipeline {
                 }
             }
         }
-        stage('Lint') {
-    steps {
-        dir('employee-management-app') {
-            bat 'npm run lint'
-        }
-    }
-    stage('Test') {
-    steps {
-        dir('employee-management-app') {
-            bat 'npm test -- --watch=false'
-        }
-    }
-}
-}
     }
 
     post {
-    success {
-        archiveArtifacts artifacts: 'employee-management-app/dist/**/*'
-        echo 'Build completed successfully'
-    }
+        success {
+            archiveArtifacts artifacts: 'employee-management-app/dist/**/*'
+            echo 'Build completed successfully'
+        }
 
-    failure {
-        echo 'Build failed'
+        failure {
+            echo 'Build failed'
+        }
     }
-}
 }
