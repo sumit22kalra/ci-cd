@@ -33,29 +33,35 @@
             ],
             "styles": ["node_modules/bootstrap/dist/css/bootstrap.min.css", "src/styles.scss"]
           },
-          "configurations": {
- "production": {
-  "fileReplacements": [
-    {
-      "replace": "src/environments/environment.ts",
-      "with": "src/environments/environment.prod.ts"
-    }
-  ],
-  "outputHashing": "all"
-},
-"testing": {
-  "fileReplacements": [
-    {
-      "replace": "src/environments/environment.ts",
-      "with": "src/environments/environment.testing.ts"
-    }
-  ],
-  "optimization": false,
-  "extractLicenses": false,
-  "sourceMap": true
+           "configurations": {
+  "production": {
+    "fileReplacements": [
+      {
+        "replace": "src/environments/environment.ts",
+        "with": "src/environments/environment.prod.ts"
+      }
+    ],
+    "outputHashing": "all"
+  },
+
+  "development": {
+    "optimization": false,
+    "extractLicenses": false,
+    "sourceMap": true
+  },
+
+  "testing": {
+    "fileReplacements": [
+      {
+        "replace": "src/environments/environment.ts",
+        "with": "src/environments/environment.testing.ts"
+      }
+    ],
+    "optimization": false,
+    "extractLicenses": false,
+    "sourceMap": true
+  }
 }
-   
-},
           "defaultConfiguration": "production"
         },
         "serve": {
