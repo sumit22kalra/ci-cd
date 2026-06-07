@@ -5,13 +5,17 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                bat 'npm install'
+                dir('employee-management-app') {
+                    bat 'npm install'
+                }
             }
         }
 
         stage('Build Angular App') {
             steps {
-                bat 'npm run build'
+                dir('employee-management-app') {
+                    bat 'npm run build'
+                }
             }
         }
     }
@@ -25,4 +29,4 @@ pipeline {
             echo 'Build failed'
         }
     }
-}  
+}
