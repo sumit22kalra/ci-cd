@@ -113,6 +113,14 @@ pipeline {
                 }
             }
         }
+        stage('Approval for Production') {
+    when {
+        expression { params.ENVIRONMENT == 'PROD' }
+    }
+    steps {
+        input message: 'Deploy to Production?'
+    }
+}
     }
 
     post {
