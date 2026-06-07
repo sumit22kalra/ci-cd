@@ -18,6 +18,26 @@ pipeline {
                 }
             }
         }
+        stage('Build Info') {
+    steps {
+        echo "Build Number: ${env.BUILD_NUMBER}"
+        echo "Branch: ${env.BRANCH_NAME}"
+    }
+}
+stage('Lint') {
+    steps {
+        dir('employee-management-app') {
+            bat 'npm run lint'
+        }
+    }
+}
+stage('Test') {
+    steps {
+        dir('employee-management-app') {
+            bat 'npm test -- --watch=false'
+        }
+    }
+}
     }
 
     post {
