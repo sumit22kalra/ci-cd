@@ -38,50 +38,76 @@ pipeline {
         stage('Build') {
             steps {
                 dir('employee-management-app') {
+
                     script {
 
                         def buildConfig = "development"
+                        def baseHref = "/employee-app-dev/"
 
                         if (params.ENVIRONMENT == "TESTING") {
                             buildConfig = "testing"
+                            baseHref = "/employee-app-testing/"
                         }
 
                         if (params.ENVIRONMENT == "PROD") {
                             buildConfig = "production"
+                            baseHref = "/employee-app-prod/"
                         }
 
-                        echo "Building for ${params.ENVIRONMENT}"
-                        bat "npm run build -- --configuration=${buildConfig}"
+                        echo "Building ${params.ENVIRONMENT}"
+                        echo "Configuration: ${buildConfig}"
+                        echo "Base Href: ${baseHref}"
+
+                        bat "npm run build -- --configuration=${buildConfig} --base-href=${baseHref}"
                     }
                 }
             }
         }
 
-     stage('Deploy') {
-    steps {
-        script {
+        stage('Deploy') {
+            steps {
+                script {
 
-            def targetPath = "E:\\xampp8\\htdocs\\employee-app-dev"
+                    def targetPath = "E:\\xampp8\\htdocs\\employee-app-dev"
 
-            if (params.ENVIRONMENT == 'TESTING') {
-                targetPath = "E:\\xampp8\\htdocs\\employee-app-testing"
+                    if (params.ENVIRONMENT == 'TESTING') {
+                        targetPath = "E:\\xampp8\\htdocs\\employee-app-testing"
+                    }
+
+                    if (params.ENVIRONMENT == 'PROD') {
+                        targetPath = "E:\\xampp8\\htdocs\\employee-app-prod"
+                    }
+
+                    bat """
+                    if exist "${targetPath}" rmdir /S /Q "${targetPath}"
+                    mkdir "${targetPath}"
+
+                    xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "${targetPath}"
+                    """
+
+                    echo "Deployed to ${params.ENVIRONMENT}"
+                }
             }
-
-            if (params.ENVIRONMENT == 'PROD') {
-                targetPath = "E:\\xampp8\\htdocs\\employee-app-prod"
-            }
-
-            bat """
-            if exist "${targetPath}" rmdir /S /Q "${targetPath}"
-            mkdir "${targetPath}"
-
-            xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "${targetPath}"
-            """
-
-            echo "Deployed to ${params.ENVIRONMENT}"
         }
-    }
-}
+
+        stage('Verify Deployment') {
+            steps {
+                script {
+
+                    def appUrl = "http://localhost/employee-app-dev/"
+
+                    if (params.ENVIRONMENT == 'TESTING') {
+                        appUrl = "http://localhost/employee-app-testing/"
+                    }
+
+                    if (params.ENVIRONMENT == 'PROD') {
+                        appUrl = "http://localhost/employee-app-prod/"
+                    }
+
+                    echo "Application URL: ${appUrl}"
+                }
+            }
+        }
     }
 
     post {
@@ -94,5 +120,9 @@ pipeline {
         failure {
             echo "Build failed for ${params.ENVIRONMENT}"
         }
+
+        always {
+            cleanWs()
+        }
     }
-} 
+}
