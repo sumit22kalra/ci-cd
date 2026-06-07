@@ -54,9 +54,12 @@ pipeline {
                             baseHref = "/employee-app-prod/"
                         }
 
-                        echo "Building ${params.ENVIRONMENT}"
+                        echo "========================================"
+                        echo "Build Number : ${env.BUILD_NUMBER}"
+                        echo "Environment  : ${params.ENVIRONMENT}"
                         echo "Configuration: ${buildConfig}"
-                        echo "Base Href: ${baseHref}"
+                        echo "Base Href    : ${baseHref}"
+                        echo "========================================"
 
                         bat "npm run build -- --configuration=${buildConfig} --base-href=${baseHref}"
                     }
@@ -78,6 +81,8 @@ pipeline {
                         targetPath = "E:\\xampp8\\htdocs\\employee-app-prod"
                     }
 
+                    echo "Deploying to ${targetPath}"
+
                     bat """
                     if exist "${targetPath}" rmdir /S /Q "${targetPath}"
                     mkdir "${targetPath}"
@@ -85,7 +90,7 @@ pipeline {
                     xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "${targetPath}"
                     """
 
-                    echo "Deployed to ${params.ENVIRONMENT}"
+                    echo "Deployment completed successfully."
                 }
             }
         }
@@ -104,7 +109,7 @@ pipeline {
                         appUrl = "http://localhost/employee-app-prod/"
                     }
 
-                    echo "Application URL: ${appUrl}"
+                    echo "Application URL : ${appUrl}"
                 }
             }
         }
@@ -113,12 +118,23 @@ pipeline {
     post {
 
         success {
-            archiveArtifacts artifacts: 'employee-management-app/dist/**/*'
-            echo "Build completed successfully for ${params.ENVIRONMENT}"
+
+            archiveArtifacts(
+                artifacts: 'employee-management-app/dist/**/*',
+                allowEmptyArchive: true
+            )
+
+            echo "========================================"
+            echo "Build #${env.BUILD_NUMBER} SUCCESS"
+            echo "Environment : ${params.ENVIRONMENT}"
+            echo "========================================"
         }
 
         failure {
-            echo "Build failed for ${params.ENVIRONMENT}"
+            echo "========================================"
+            echo "Build #${env.BUILD_NUMBER} FAILED"
+            echo "Environment : ${params.ENVIRONMENT}"
+            echo "========================================"
         }
 
         always {
