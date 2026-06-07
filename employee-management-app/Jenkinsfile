@@ -57,7 +57,7 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+     stage('Deploy') {
     steps {
         script {
 
@@ -72,7 +72,10 @@ pipeline {
             }
 
             bat """
-            xcopy /E /Y /I employee-management-app\\dist\\employee-management-app ${targetPath}
+            if exist "${targetPath}" rmdir /S /Q "${targetPath}"
+            mkdir "${targetPath}"
+
+            xcopy /E /Y /I employee-management-app\\dist\\employee-management-app "${targetPath}"
             """
 
             echo "Deployed to ${params.ENVIRONMENT}"
