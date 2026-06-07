@@ -61,21 +61,21 @@ pipeline {
     steps {
         script {
 
-            def targetPath = "E:\\cicd\\Deployments\\DEV"
+            def targetPath = "E:\\xampp8\\htdocs\\employee-app-dev"
 
             if (params.ENVIRONMENT == 'TESTING') {
-                targetPath = "E:\\cicd\\Deployments\\TESTING"
+                targetPath = "E:\\xampp8\\htdocs\\employee-app-testing"
             }
 
             if (params.ENVIRONMENT == 'PROD') {
-                targetPath = "E:\\cicd\\Deployments\\PROD"
+                targetPath = "E:\\xampp8\\htdocs\\employee-app-prod"
             }
 
             bat """
             if exist "${targetPath}" rmdir /S /Q "${targetPath}"
             mkdir "${targetPath}"
 
-            xcopy /E /Y /I employee-management-app\\dist\\employee-management-app "${targetPath}"
+            xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "${targetPath}"
             """
 
             echo "Deployed to ${params.ENVIRONMENT}"
