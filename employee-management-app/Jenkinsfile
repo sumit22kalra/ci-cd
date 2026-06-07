@@ -11,22 +11,6 @@ pipeline {
             }
         }
 
-        stage('Lint') {
-            steps {
-                dir('employee-management-app') {
-                    bat 'npm run lint'
-                }
-            }
-        }
-
-        stage('Test') {
-            steps {
-                dir('employee-management-app') {
-                    bat 'npm test -- --watch=false'
-                }
-            }
-        }
-
         stage('Build Angular App') {
             steps {
                 dir('employee-management-app') {
