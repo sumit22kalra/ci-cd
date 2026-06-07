@@ -21,12 +21,13 @@ pipeline {
     }
 
     post {
-        success {
-            echo 'Build completed successfully'
-        }
-
-        failure {
-            echo 'Build failed'
-        }
+    success {
+        archiveArtifacts artifacts: 'employee-management-app/dist/**/*'
+        echo 'Build completed successfully'
     }
+
+    failure {
+        echo 'Build failed'
+    }
+}
 }
