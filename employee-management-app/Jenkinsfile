@@ -1,6 +1,14 @@
 pipeline {
     agent any
 
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['DEV', 'UAT', 'PROD'],
+            description: 'Select deployment environment'
+        )
+    }
+
     stages {
 
         stage('Install Dependencies') {
@@ -11,43 +19,25 @@ pipeline {
             }
         }
 
-        stage('Build Angular App') {
+        stage('Build') {
             steps {
                 dir('employee-management-app') {
                     bat 'npm run build'
                 }
             }
         }
-        stage('Build Info') {
-    steps {
-        echo "Build Number: ${env.BUILD_NUMBER}"
-        echo "Branch: ${env.BRANCH_NAME}"
-    }
-}
-stage('Lint') {
-    steps {
-        dir('employee-management-app') {
-            bat 'npm run lint'
+
+        stage('Display Environment') {
+            steps {
+                echo "Selected Environment: ${params.ENVIRONMENT}"
+            }
         }
-    }
-}
-stage('Test') {
-    steps {
-        dir('employee-management-app') {
-            bat 'npm test -- --watch=false'
-        }
-    }
-}
     }
 
     post {
         success {
             archiveArtifacts artifacts: 'employee-management-app/dist/**/*'
             echo 'Build completed successfully'
-        }
-
-        failure {
-            echo 'Build failed'
         }
     }
 }
