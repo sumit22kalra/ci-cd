@@ -20,12 +20,46 @@ pipeline {
         }
 
         stage('Build') {
-            steps {
-                dir('employee-management-app') {
-                    bat 'npm run build'
+    steps {
+        dir('employee-management-app') {
+
+            script {
+
+                if (params.ENVIRONMENT == 'DEV') {
+                    bat 'ng build --configuration development'
+                }
+
+                if (params.ENVIRONMENT == 'UAT') {
+                    bat 'ng build --configuration uat'
+                }
+
+                if (params.ENVIRONMENT == 'PROD') {
+                    bat 'ng build --configuration production'
                 }
             }
         }
+    }
+}
+stage('Deploy') {
+
+    steps {
+
+        script {
+
+            if (params.ENVIRONMENT == 'DEV') {
+                echo 'Deploying to DEV Server'
+            }
+
+            if (params.ENVIRONMENT == 'UAT') {
+                echo 'Deploying to UAT Server'
+            }
+
+            if (params.ENVIRONMENT == 'PROD') {
+                echo 'Deploying to PROD Server'
+            }
+        }
+    }
+}
 
         stage('Display Environment') {
             steps {
