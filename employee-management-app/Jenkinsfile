@@ -58,23 +58,27 @@ pipeline {
         }
 
         stage('Deploy') {
-            steps {
-                script {
+    steps {
+        script {
 
-                    if (params.ENVIRONMENT == "DEV") {
-                        echo "Deploying to DEV Environment"
-                    }
+            def targetPath = "E:\\cicd\\Deployments\\DEV"
 
-                    if (params.ENVIRONMENT == "TESTING") {
-                        echo "Deploying to TESTING Environment"
-                    }
-
-                    if (params.ENVIRONMENT == "PROD") {
-                        echo "Deploying to PROD Environment"
-                    }
-                }
+            if (params.ENVIRONMENT == 'TESTING') {
+                targetPath = "E:\\cicd\\Deployments\\TESTING"
             }
+
+            if (params.ENVIRONMENT == 'PROD') {
+                targetPath = "E:\\cicd\\Deployments\\PROD"
+            }
+
+            bat """
+            xcopy /E /Y /I employee-management-app\\dist\\employee-management-app ${targetPath}
+            """
+
+            echo "Deployed to ${params.ENVIRONMENT}"
         }
+    }
+}
     }
 
     post {
