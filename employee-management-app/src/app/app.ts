@@ -11,5 +11,6 @@ import { environment } from '../environments/environment';
 export class App {
   protected readonly title = signal('employee-management-app');
     apiUrl = environment.apiUrl;
+  envName = environment.environmentName;
 
 }
