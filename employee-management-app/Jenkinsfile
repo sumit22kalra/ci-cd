@@ -121,6 +121,17 @@ pipeline {
         input message: 'Deploy to Production?'
     }
 }
+stage('Set Build Info') {
+    steps {
+        script {
+            currentBuild.displayName =
+                "#${env.BUILD_NUMBER}-${params.ENVIRONMENT}"
+
+            currentBuild.description =
+                "Environment: ${params.ENVIRONMENT}"
+        }
+    }
+}
     }
 
     post {
