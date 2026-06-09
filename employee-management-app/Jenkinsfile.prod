@@ -1,7 +1,6 @@
 pipeline {
 agent any
-
-```
+ 
 stages {
 
     stage('Build PROD') {
@@ -32,6 +31,5 @@ post {
         cleanWs()
     }
 }
-```
 
 }
