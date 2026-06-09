@@ -1,14 +1,6 @@
 pipeline {
     agent any
 
-    parameters {
-        choice(
-            name: 'ENVIRONMENT',
-            choices: ['DEV', 'TESTING', 'PROD'],
-            description: 'Select deployment environment'
-        )
-    }
-
     stages {
 
         stage('Install Dependencies') {
@@ -27,133 +19,98 @@ pipeline {
             }
         }
 
-        stage('Test') {
-            steps {
-                dir('employee-management-app') {
-                    bat 'npm test -- --watch=false'
-                }
-            }
-        }
-
-        stage('Build') {
+        stage('Build DEV Artifact') {
             steps {
                 dir('employee-management-app') {
 
-                    script {
+                    echo "Building Build #${env.BUILD_NUMBER}"
 
-                        def buildConfig = "development"
-                        def baseHref = "/employee-app-dev/"
-
-                        if (params.ENVIRONMENT == "TESTING") {
-                            buildConfig = "testing"
-                            baseHref = "/employee-app-testing/"
-                        }
-
-                        if (params.ENVIRONMENT == "PROD") {
-                            buildConfig = "production"
-                            baseHref = "/employee-app-prod/"
-                        }
-
-                        echo "========================================"
-                        echo "Build Number : ${env.BUILD_NUMBER}"
-                        echo "Environment  : ${params.ENVIRONMENT}"
-                        echo "Configuration: ${buildConfig}"
-                        echo "Base Href    : ${baseHref}"
-                        echo "========================================"
-
-                        bat "npm run build -- --configuration=${buildConfig} --base-href=${baseHref}"
-                    }
+                    bat '''
+                    npm run build -- --configuration=development --base-href=/employee-app-dev/
+                    '''
                 }
             }
         }
 
-        stage('Deploy') {
+        stage('Archive Artifact') {
             steps {
-                script {
-
-                    def targetPath = "E:\\xampp8\\htdocs\\employee-app-dev"
-
-                    if (params.ENVIRONMENT == 'TESTING') {
-                        targetPath = "E:\\xampp8\\htdocs\\employee-app-testing"
-                    }
-
-                    if (params.ENVIRONMENT == 'PROD') {
-                        targetPath = "E:\\xampp8\\htdocs\\employee-app-prod"
-                    }
-
-                    echo "Deploying to ${targetPath}"
-
-                    bat """
-                    if exist "${targetPath}" rmdir /S /Q "${targetPath}"
-                    mkdir "${targetPath}"
-
-                    xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "${targetPath}"
-                    """
-
-                    echo "Deployment completed successfully."
-                }
+                archiveArtifacts(
+                    artifacts: 'employee-management-app/dist/**/*',
+                    fingerprint: true
+                )
             }
         }
 
-        stage('Verify Deployment') {
+        stage('Deploy DEV') {
             steps {
-                script {
 
-                    def appUrl = "http://localhost/employee-app-dev/"
+                bat '''
+                if exist "E:\\xampp8\\htdocs\\employee-app-dev" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-dev"
+                mkdir "E:\\xampp8\\htdocs\\employee-app-dev"
 
-                    if (params.ENVIRONMENT == 'TESTING') {
-                        appUrl = "http://localhost/employee-app-testing/"
-                    }
+                xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "E:\\xampp8\\htdocs\\employee-app-dev"
+                '''
 
-                    if (params.ENVIRONMENT == 'PROD') {
-                        appUrl = "http://localhost/employee-app-prod/"
-                    }
-
-                    echo "Application URL : ${appUrl}"
-                }
+                echo 'DEV Deployment Successful'
             }
         }
-        stage('Approval for Production') {
-    when {
-        expression { params.ENVIRONMENT == 'PROD' }
-    }
-    steps {
-        input message: 'Deploy to Production?'
-    }
-}
-stage('Set Build Info') {
-    steps {
-        script {
-            currentBuild.displayName =
-                "#${env.BUILD_NUMBER}-${params.ENVIRONMENT}"
 
-            currentBuild.description =
-                "Environment: ${params.ENVIRONMENT}"
+        stage('Approve TESTING') {
+            steps {
+                input message: 'Deploy Build to TESTING ?'
+            }
         }
-    }
-}
+
+        stage('Deploy TESTING') {
+            steps {
+
+                bat '''
+                if exist "E:\\xampp8\\htdocs\\employee-app-testing" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-testing"
+                mkdir "E:\\xampp8\\htdocs\\employee-app-testing"
+
+                xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "E:\\xampp8\\htdocs\\employee-app-testing"
+                '''
+
+                echo 'TESTING Deployment Successful'
+            }
+        }
+
+        stage('Approve PROD') {
+            steps {
+                input message: 'Deploy Build to PROD ?'
+            }
+        }
+
+        stage('Deploy PROD') {
+            steps {
+
+                bat '''
+                if exist "E:\\xampp8\\htdocs\\employee-app-prod" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-prod"
+                mkdir "E:\\xampp8\\htdocs\\employee-app-prod"
+
+                xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "E:\\xampp8\\htdocs\\employee-app-prod"
+                '''
+
+                echo 'PROD Deployment Successful'
+            }
+        }
     }
 
     post {
 
         success {
 
-            archiveArtifacts(
-                artifacts: 'employee-management-app/dist/**/*',
-                allowEmptyArchive: true
-            )
+            currentBuild.displayName =
+                "#${env.BUILD_NUMBER}"
 
-            echo "========================================"
-            echo "Build #${env.BUILD_NUMBER} SUCCESS"
-            echo "Environment : ${params.ENVIRONMENT}"
-            echo "========================================"
+            currentBuild.description =
+                "DEV ✓ TESTING ✓ PROD ✓"
+
+            echo "Build Completed Successfully"
         }
 
         failure {
-            echo "========================================"
-            echo "Build #${env.BUILD_NUMBER} FAILED"
-            echo "Environment : ${params.ENVIRONMENT}"
-            echo "========================================"
+            echo "Build Failed"
         }
 
         always {
