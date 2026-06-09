@@ -1,0 +1,53 @@
+pipeline {
+agent any
+
+```
+stages {
+
+    stage('Install Dependencies') {
+        steps {
+            dir('employee-management-app') {
+                bat 'npm install'
+            }
+        }
+    }
+
+    stage('Lint') {
+        steps {
+            dir('employee-management-app') {
+                bat 'npm run lint'
+            }
+        }
+    }
+
+    stage('Build DEV') {
+        steps {
+            dir('employee-management-app') {
+                bat 'npm run build -- --configuration=development --base-href=/employee-app-dev/'
+            }
+        }
+    }
+
+    stage('Deploy DEV') {
+        steps {
+            bat '''
+            if exist "E:\\xampp8\\htdocs\\employee-app-dev" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-dev"
+            mkdir "E:\\xampp8\\htdocs\\employee-app-dev"
+
+            xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "E:\\xampp8\\htdocs\\employee-app-dev"
+            '''
+        }
+    }
+}
+
+post {
+    success {
+        echo 'DEV Deployment Successful'
+    }
+    always {
+        cleanWs()
+    }
+}
+```
+
+}

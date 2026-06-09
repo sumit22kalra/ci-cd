@@ -1,0 +1,37 @@
+pipeline {
+agent any
+
+```
+stages {
+
+    stage('Build TESTING') {
+        steps {
+            dir('employee-management-app') {
+                bat 'npm run build -- --configuration=testing --base-href=/employee-app-testing/'
+            }
+        }
+    }
+
+    stage('Deploy TESTING') {
+        steps {
+            bat '''
+            if exist "E:\\xampp8\\htdocs\\employee-app-testing" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-testing"
+            mkdir "E:\\xampp8\\htdocs\\employee-app-testing"
+
+            xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "E:\\xampp8\\htdocs\\employee-app-testing"
+            '''
+        }
+    }
+}
+
+post {
+    success {
+        echo 'TESTING Deployment Successful'
+    }
+    always {
+        cleanWs()
+    }
+}
+```
+
+}

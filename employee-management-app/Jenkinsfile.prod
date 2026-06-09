@@ -1,0 +1,37 @@
+pipeline {
+agent any
+
+```
+stages {
+
+    stage('Build PROD') {
+        steps {
+            dir('employee-management-app') {
+                bat 'npm run build -- --configuration=production --base-href=/employee-app-prod/'
+            }
+        }
+    }
+
+    stage('Deploy PROD') {
+        steps {
+            bat '''
+            if exist "E:\\xampp8\\htdocs\\employee-app-prod" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-prod"
+            mkdir "E:\\xampp8\\htdocs\\employee-app-prod"
+
+            xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "E:\\xampp8\\htdocs\\employee-app-prod"
+            '''
+        }
+    }
+}
+
+post {
+    success {
+        echo 'PROD Deployment Successful'
+    }
+    always {
+        cleanWs()
+    }
+}
+```
+
+}
