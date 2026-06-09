@@ -1,174 +1,96 @@
 pipeline {
-agent any
+    agent any
 
- 
-stages {
+    stages {
 
-    stage('Build Info') {
-        steps {
-            script {
-                currentBuild.displayName = "#${env.BUILD_NUMBER}"
-                currentBuild.description = "DEV Deployment Started"
+        stage('Build Info') {
+            steps {
+                script {
+                    currentBuild.displayName = "#${env.BUILD_NUMBER}"
+                    currentBuild.description = "DEV Deployment Started"
+                }
             }
         }
-    }
 
-    stage('Install Dependencies') {
-        steps {
-            dir('employee-management-app') {
-                bat 'npm install'
+        stage('Install Dependencies') {
+            steps {
+                dir('employee-management-app') {
+                    bat 'npm install'
+                }
             }
         }
-    }
 
-    stage('Lint') {
-        steps {
-            dir('employee-management-app') {
-                bat 'npm run lint'
+        stage('Lint') {
+            steps {
+                dir('employee-management-app') {
+                    bat 'npm run lint'
+                }
             }
         }
-    }
 
-    stage('Test') {
-        steps {
-            dir('employee-management-app') {
-                bat 'npm test -- --watch=false'
+        stage('Build DEV Artifact') {
+            steps {
+                dir('employee-management-app') {
+                    bat 'npm run build -- --configuration=development --base-href=/employee-app-dev/'
+                }
             }
         }
-    }
 
-    stage('Build DEV Artifact') {
-        steps {
-            dir('employee-management-app') {
+        stage('Archive Artifact') {
+            steps {
+                archiveArtifacts(
+                    artifacts: 'employee-management-app/dist/**/*',
+                    fingerprint: true,
+                    allowEmptyArchive: true
+                )
+            }
+        }
 
-                echo "========================================"
-                echo "Build Number : ${env.BUILD_NUMBER}"
-                echo "Environment  : DEV"
-                echo "========================================"
+        stage('Deploy DEV') {
+            steps {
 
                 bat '''
-                npm run build -- --configuration=development --base-href=/employee-app-dev/
+                if exist "E:\\xampp8\\htdocs\\employee-app-dev" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-dev"
+                mkdir "E:\\xampp8\\htdocs\\employee-app-dev"
+
+                xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "E:\\xampp8\\htdocs\\employee-app-dev"
                 '''
+
+                script {
+                    currentBuild.description = "DEV ✓"
+                }
+
+                echo 'DEV Deployment Successful'
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                echo 'DEV URL : http://localhost/employee-app-dev/'
             }
         }
     }
 
-    stage('Archive Artifact') {
-        steps {
-            archiveArtifacts(
-                artifacts: 'employee-management-app/dist/**/*',
-                fingerprint: true,
-                allowEmptyArchive: true
-            )
-        }
-    }
+    post {
 
-    stage('Deploy DEV') {
-        steps {
-
-            bat '''
-            if exist "E:\\xampp8\\htdocs\\employee-app-dev" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-dev"
-            mkdir "E:\\xampp8\\htdocs\\employee-app-dev"
-
-            xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "E:\\xampp8\\htdocs\\employee-app-dev"
-            '''
-
+        success {
             script {
-                currentBuild.description = "DEV ✓"
+                currentBuild.description = "DEV ✓ | SUCCESS"
             }
 
-            echo 'DEV Deployment Successful'
+            echo "Build #${env.BUILD_NUMBER} SUCCESS"
         }
-    }
 
-    stage('Approve TESTING') {
-        steps {
-            input message: 'Deploy Build to TESTING ?'
-        }
-    }
-
-    stage('Deploy TESTING') {
-        steps {
-
-            bat '''
-            if exist "E:\\xampp8\\htdocs\\employee-app-testing" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-testing"
-            mkdir "E:\\xampp8\\htdocs\\employee-app-testing"
-
-            xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "E:\\xampp8\\htdocs\\employee-app-testing"
-            '''
-
+        failure {
             script {
-                currentBuild.description = "DEV ✓ TESTING ✓"
+                currentBuild.description = "FAILED"
             }
 
-            echo 'TESTING Deployment Successful'
+            echo "Build #${env.BUILD_NUMBER} FAILED"
         }
-    }
 
-    stage('Approve PROD') {
-        steps {
-            input message: 'Deploy Build to PROD ?'
-        }
-    }
-
-    stage('Deploy PROD') {
-        steps {
-
-            bat '''
-            if exist "E:\\xampp8\\htdocs\\employee-app-prod" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-prod"
-            mkdir "E:\\xampp8\\htdocs\\employee-app-prod"
-
-            xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "E:\\xampp8\\htdocs\\employee-app-prod"
-            '''
-
-            script {
-                currentBuild.description = "DEV ✓ TESTING ✓ PROD ✓"
-            }
-
-            echo 'PROD Deployment Successful'
-        }
-    }
-
-    stage('Verify Deployment') {
-        steps {
-            echo 'DEV URL     : http://localhost/employee-app-dev/'
-            echo 'TESTING URL : http://localhost/employee-app-testing/'
-            echo 'PROD URL    : http://localhost/employee-app-prod/'
+        always {
+            cleanWs()
         }
     }
 }
-
-post {
-
-    success {
-
-        script {
-            currentBuild.description =
-                "DEV ✓ TESTING ✓ PROD ✓ | SUCCESS"
-        }
-
-        echo "========================================"
-        echo "Build #${env.BUILD_NUMBER} SUCCESS"
-        echo "========================================"
-    }
-
-    failure {
-
-        script {
-            currentBuild.description =
-                "FAILED"
-        }
-
-        echo "========================================"
-        echo "Build #${env.BUILD_NUMBER} FAILED"
-        echo "========================================"
-    }
-
-    always {
-        cleanWs()
-    }
-}
- 
-
-}
- 
