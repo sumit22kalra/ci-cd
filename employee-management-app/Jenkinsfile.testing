@@ -1,7 +1,15 @@
 pipeline {
 agent any
- 
+
 stages {
+
+    stage('Install Dependencies') {
+        steps {
+            dir('employee-management-app') {
+                bat 'npm install'
+            }
+        }
+    }
 
     stage('Build TESTING') {
         steps {
@@ -13,6 +21,7 @@ stages {
 
     stage('Deploy TESTING') {
         steps {
+
             bat '''
             if exist "E:\\xampp8\\htdocs\\employee-app-testing" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-testing"
             mkdir "E:\\xampp8\\htdocs\\employee-app-testing"
@@ -21,16 +30,16 @@ stages {
             '''
         }
     }
-} 
+}
 
 post {
     success {
         echo 'TESTING Deployment Successful'
     }
+
     always {
         cleanWs()
     }
 }
- 
 
 }
