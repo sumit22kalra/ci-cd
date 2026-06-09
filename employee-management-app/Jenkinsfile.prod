@@ -1,7 +1,16 @@
 pipeline {
 agent any
- 
+
+
 stages {
+
+    stage('Install Dependencies') {
+        steps {
+            dir('employee-management-app') {
+                bat 'npm install'
+            }
+        }
+    }
 
     stage('Build PROD') {
         steps {
@@ -13,6 +22,7 @@ stages {
 
     stage('Deploy PROD') {
         steps {
+
             bat '''
             if exist "E:\\xampp8\\htdocs\\employee-app-prod" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-prod"
             mkdir "E:\\xampp8\\htdocs\\employee-app-prod"
@@ -27,10 +37,15 @@ post {
     success {
         echo 'PROD Deployment Successful'
     }
+
+    failure {
+        echo 'PROD Deployment Failed'
+    }
+
     always {
         cleanWs()
     }
 }
 
+
 }
- 
