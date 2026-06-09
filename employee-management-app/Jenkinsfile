@@ -1,120 +1,173 @@
 pipeline {
-    agent any
+agent any
 
-    stages {
+```
+stages {
 
-        stage('Install Dependencies') {
-            steps {
-                dir('employee-management-app') {
-                    bat 'npm install'
-                }
-            }
-        }
-
-        stage('Lint') {
-            steps {
-                dir('employee-management-app') {
-                    bat 'npm run lint'
-                }
-            }
-        }
-
-        stage('Build DEV Artifact') {
-            steps {
-                dir('employee-management-app') {
-
-                    echo "Building Build #${env.BUILD_NUMBER}"
-
-                    bat '''
-                    npm run build -- --configuration=development --base-href=/employee-app-dev/
-                    '''
-                }
-            }
-        }
-
-        stage('Archive Artifact') {
-            steps {
-                archiveArtifacts(
-                    artifacts: 'employee-management-app/dist/**/*',
-                    fingerprint: true
-                )
-            }
-        }
-
-        stage('Deploy DEV') {
-            steps {
-
-                bat '''
-                if exist "E:\\xampp8\\htdocs\\employee-app-dev" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-dev"
-                mkdir "E:\\xampp8\\htdocs\\employee-app-dev"
-
-                xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "E:\\xampp8\\htdocs\\employee-app-dev"
-                '''
-
-                echo 'DEV Deployment Successful'
-            }
-        }
-
-        stage('Approve TESTING') {
-            steps {
-                input message: 'Deploy Build to TESTING ?'
-            }
-        }
-
-        stage('Deploy TESTING') {
-            steps {
-
-                bat '''
-                if exist "E:\\xampp8\\htdocs\\employee-app-testing" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-testing"
-                mkdir "E:\\xampp8\\htdocs\\employee-app-testing"
-
-                xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "E:\\xampp8\\htdocs\\employee-app-testing"
-                '''
-
-                echo 'TESTING Deployment Successful'
-            }
-        }
-
-        stage('Approve PROD') {
-            steps {
-                input message: 'Deploy Build to PROD ?'
-            }
-        }
-
-        stage('Deploy PROD') {
-            steps {
-
-                bat '''
-                if exist "E:\\xampp8\\htdocs\\employee-app-prod" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-prod"
-                mkdir "E:\\xampp8\\htdocs\\employee-app-prod"
-
-                xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "E:\\xampp8\\htdocs\\employee-app-prod"
-                '''
-
-                echo 'PROD Deployment Successful'
+    stage('Build Info') {
+        steps {
+            script {
+                currentBuild.displayName = "#${env.BUILD_NUMBER}"
+                currentBuild.description = "DEV Deployment Started"
             }
         }
     }
 
-    post {
+    stage('Install Dependencies') {
+        steps {
+            dir('employee-management-app') {
+                bat 'npm install'
+            }
+        }
+    }
 
-        success {
+    stage('Lint') {
+        steps {
+            dir('employee-management-app') {
+                bat 'npm run lint'
+            }
+        }
+    }
 
-            currentBuild.displayName =
-                "#${env.BUILD_NUMBER}"
+    stage('Test') {
+        steps {
+            dir('employee-management-app') {
+                bat 'npm test -- --watch=false'
+            }
+        }
+    }
 
+    stage('Build DEV Artifact') {
+        steps {
+            dir('employee-management-app') {
+
+                echo "========================================"
+                echo "Build Number : ${env.BUILD_NUMBER}"
+                echo "Environment  : DEV"
+                echo "========================================"
+
+                bat '''
+                npm run build -- --configuration=development --base-href=/employee-app-dev/
+                '''
+            }
+        }
+    }
+
+    stage('Archive Artifact') {
+        steps {
+            archiveArtifacts(
+                artifacts: 'employee-management-app/dist/**/*',
+                fingerprint: true,
+                allowEmptyArchive: true
+            )
+        }
+    }
+
+    stage('Deploy DEV') {
+        steps {
+
+            bat '''
+            if exist "E:\\xampp8\\htdocs\\employee-app-dev" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-dev"
+            mkdir "E:\\xampp8\\htdocs\\employee-app-dev"
+
+            xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "E:\\xampp8\\htdocs\\employee-app-dev"
+            '''
+
+            script {
+                currentBuild.description = "DEV ✓"
+            }
+
+            echo 'DEV Deployment Successful'
+        }
+    }
+
+    stage('Approve TESTING') {
+        steps {
+            input message: 'Deploy Build to TESTING ?'
+        }
+    }
+
+    stage('Deploy TESTING') {
+        steps {
+
+            bat '''
+            if exist "E:\\xampp8\\htdocs\\employee-app-testing" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-testing"
+            mkdir "E:\\xampp8\\htdocs\\employee-app-testing"
+
+            xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "E:\\xampp8\\htdocs\\employee-app-testing"
+            '''
+
+            script {
+                currentBuild.description = "DEV ✓ TESTING ✓"
+            }
+
+            echo 'TESTING Deployment Successful'
+        }
+    }
+
+    stage('Approve PROD') {
+        steps {
+            input message: 'Deploy Build to PROD ?'
+        }
+    }
+
+    stage('Deploy PROD') {
+        steps {
+
+            bat '''
+            if exist "E:\\xampp8\\htdocs\\employee-app-prod" rmdir /S /Q "E:\\xampp8\\htdocs\\employee-app-prod"
+            mkdir "E:\\xampp8\\htdocs\\employee-app-prod"
+
+            xcopy /E /Y /I employee-management-app\\dist\\employee-management-app\\browser "E:\\xampp8\\htdocs\\employee-app-prod"
+            '''
+
+            script {
+                currentBuild.description = "DEV ✓ TESTING ✓ PROD ✓"
+            }
+
+            echo 'PROD Deployment Successful'
+        }
+    }
+
+    stage('Verify Deployment') {
+        steps {
+            echo 'DEV URL     : http://localhost/employee-app-dev/'
+            echo 'TESTING URL : http://localhost/employee-app-testing/'
+            echo 'PROD URL    : http://localhost/employee-app-prod/'
+        }
+    }
+}
+
+post {
+
+    success {
+
+        script {
             currentBuild.description =
-                "DEV ✓ TESTING ✓ PROD ✓"
-
-            echo "Build Completed Successfully"
+                "DEV ✓ TESTING ✓ PROD ✓ | SUCCESS"
         }
 
-        failure {
-            echo "Build Failed"
-        }
-
-        always {
-            cleanWs()
-        }
+        echo "========================================"
+        echo "Build #${env.BUILD_NUMBER} SUCCESS"
+        echo "========================================"
     }
+
+    failure {
+
+        script {
+            currentBuild.description =
+                "FAILED"
+        }
+
+        echo "========================================"
+        echo "Build #${env.BUILD_NUMBER} FAILED"
+        echo "========================================"
+    }
+
+    always {
+        cleanWs()
+    }
+}
+```
+
 }
