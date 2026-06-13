@@ -14,7 +14,7 @@ import { timer, switchMap, catchError, EMPTY } from 'rxjs';
   imports: [
     CommonModule,
     TableModule, 
-    ButtonModule,
+    ButtonModule, 
     CardModule,
     ProgressBarModule 
   ],
