@@ -1,0 +1,41 @@
+<p-table [value]="buildHistory">
+
+    <ng-template pTemplate="header">
+        <tr>
+            <th>S.No</th>
+            <th>Build No</th>
+            <th>Environment</th>
+            <th>Build Date</th>
+            <th>Build Time</th>
+            <th>Status</th>
+            <th>Triggered By</th>
+            <th>Duration</th>
+        </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-row>
+        <tr>
+
+            <td>{{ row.sno }}</td>
+            <td>{{ row.buildNo }}</td>
+            <td>{{ row.environment }}</td>
+            <td>{{ row.buildDate }}</td>
+            <td>{{ row.buildTime }}</td>
+
+            <td>
+                <span
+                  [ngClass]="{
+                    'text-success': row.status === 'SUCCESS',
+                    'text-danger': row.status === 'FAILED'
+                  }">
+                    {{ row.status }}
+                </span>
+            </td>
+
+            <td>{{ row.triggeredBy }}</td>
+            <td>{{ row.duration }}</td>
+
+        </tr>
+    </ng-template>
+
+</p-table>
