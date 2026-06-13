@@ -1,13 +1,15 @@
 {
   "/jenkins": {
     "target": "https://gender-spider-comfort.ngrok-free.dev",
-    "secure": true,
+    "secure": false,
     "changeOrigin": true,
+    "logLevel": "debug",
     "pathRewrite": {
       "^/jenkins": ""
     },
     "headers": {
-      "ngrok-skip-browser-warning": "true"
+      "ngrok-skip-browser-warning": "true",
+      "Authorization": "Basic YWRtaW46MTE0YzY2ZDgxOGY4NGRkOWU3NDVmOTRiMzljNGNlYWRmOA=="
     }
   }
 }

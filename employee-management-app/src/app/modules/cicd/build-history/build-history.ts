@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject, ChangeDetectorRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -41,7 +41,9 @@ export class BuildHistory implements OnInit {
 
   runningBuilds = 0;
 
-  loading = false;
+  loading = true;
+
+  private cdr = inject(ChangeDetectorRef);
 
   remainingSeconds = 0;
 
@@ -55,7 +57,7 @@ export class BuildHistory implements OnInit {
 
   ngOnInit(): void {
     // Tick every second to manage the countdown and trigger refresh
-    timer(0, 1000)
+    timer(1, 1000)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         if (this.remainingSeconds <= 0) {
@@ -85,6 +87,9 @@ export class BuildHistory implements OnInit {
           this.applyFilter();
 
           this.loading = false;
+
+          // Manually trigger change detection to resolve NG0100
+          this.cdr.detectChanges();
         },
 
         error: (error) => {
@@ -92,6 +97,7 @@ export class BuildHistory implements OnInit {
           console.error(error);
 
           this.loading = false;
+          this.cdr.detectChanges();
         }
       });
   }
@@ -174,6 +180,7 @@ export class BuildHistory implements OnInit {
         // Reset timer to fetch the new "Running" build immediately
         this.remainingSeconds = 2; 
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Promotion failed', err);

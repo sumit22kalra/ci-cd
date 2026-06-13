@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin, map, Observable } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 
 import { BuildHistoryModel } from '../models/build-history.model';
 import { environment } from '../../../../environments/environment';
@@ -15,18 +15,18 @@ export class JenkinsService {
   getBuildHistory(): Observable<BuildHistoryModel[]> {
 
     const devUrl =
-      `${environment.jenkinsUrl}/job/${environment.jobs.dev}/api/json?tree=builds[number,result,timestamp,duration]`;
+      `${environment.jenkinsApiUrl}/job/${environment.jobs.dev}/api/json?tree=builds[number,result,timestamp,duration]`;
 
     const testingUrl =
-      `${environment.jenkinsUrl}/job/${environment.jobs.testing}/api/json?tree=builds[number,result,timestamp,duration]`;
+      `${environment.jenkinsApiUrl}/job/${environment.jobs.testing}/api/json?tree=builds[number,result,timestamp,duration]`;
 
     const prodUrl =
-      `${environment.jenkinsUrl}/job/${environment.jobs.prod}/api/json?tree=builds[number,result,timestamp,duration]`;
+      `${environment.jenkinsApiUrl}/job/${environment.jobs.prod}/api/json?tree=builds[number,result,timestamp,duration]`;
 
     return forkJoin([
-      this.http.get<any>(devUrl),
-      this.http.get<any>(testingUrl),
-      this.http.get<any>(prodUrl)
+      this.http.get<any>(devUrl).pipe(catchError(() => of({ builds: [] }))),
+      this.http.get<any>(testingUrl).pipe(catchError(() => of({ builds: [] }))),
+      this.http.get<any>(prodUrl).pipe(catchError(() => of({ builds: [] })))
     ]).pipe(
 
       map(([dev, testing, prod]) => {
@@ -56,7 +56,7 @@ export class JenkinsService {
 
   promoteBuild(targetJob: string, sourceBuildNo: string): Observable<any> {
     // This triggers a Jenkins job with parameters to "move" the build
-    const url = `${environment.jenkinsUrl}/job/${targetJob}/buildWithParameters`;
+    const url = `${environment.jenkinsApiUrl}/job/${targetJob}/buildWithParameters`;
     const params = {
       SOURCE_BUILD_NUMBER: sourceBuildNo.replace('#', ''),
       PROMOTED_BY: 'CI-CD-Dashboard'
@@ -104,7 +104,7 @@ export class JenkinsService {
           Math.round(build.duration / 1000) + ' Sec',
 
         buildUrl:
-          `${environment.jenkinsUrl}/job/${jobName}/${build.number}`
+          `${environment.jenkinsExternalUrl}/job/${jobName}/${build.number}`
       };
     });
   }

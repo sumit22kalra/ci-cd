@@ -1,6 +1,7 @@
 export const environment = {
   production: false,
-  jenkinsUrl: '/jenkins',
+  jenkinsApiUrl: '/jenkins', // For API calls through proxy
+  jenkinsExternalUrl: 'https://gender-spider-comfort.ngrok-free.dev', // For direct links
   jobs: {
     dev: 'Angular-DEV',
     testing: 'Angular-TESTING',
